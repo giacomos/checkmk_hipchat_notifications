@@ -47,7 +47,7 @@ def main():
         inputs_list.append(os.environ['NOTIFY_SERVICEDESC'])
         inputs_list.append(os.environ['NOTIFY_HOSTALIAS'])
         inputs_list.append(os.environ['NOTIFY_LONGDATETIME'])
-        inputs_list.append(os.environ['NOTIFY_WHAT'])
+        inputs_list.append(os.environ['NOTIFY_NOTIFICATIONTYPE'])
         inputs_list.append(os.environ['NOTIFY_HOSTADDRESS'])
         state = ' -> '.join([os.environ['NOTIFY_PREVIOUSSERVICEHARDSHORTSTATE'],
                              os.environ['NOTIFY_SERVICESHORTSTATE']])
@@ -58,7 +58,7 @@ def main():
         inputs_list.append(os.environ['NOTIFY_HOSTNAME'])
         inputs_list.append(os.environ['NOTIFY_HOSTALIAS'])
         inputs_list.append(os.environ['NOTIFY_LONGDATETIME'])
-        inputs_list.append(os.environ['NOTIFY_WHAT'])
+        inputs_list.append(os.environ['NOTIFY_NOTIFICATIONTYPE'])
         inputs_list.append(os.environ['NOTIFY_HOSTADDRESS'])
         state = ' -> '.join([os.environ['NOTIFY_PREVIOUSHOSTHARDSHORTSTATE'],
                              os.environ['NOTIFY_HOSTSHORTSTATE']])
