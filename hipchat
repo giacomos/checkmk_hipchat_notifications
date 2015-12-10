@@ -1,0 +1,61 @@
+#!/usr/bin/python
+# Send notification to Hipchat
+
+import os
+import subprocess
+import sys
+
+
+PARAMS = [
+    {'src': 'NOTIFY_PARAMETER_API_VERSION', 'dst': '--api_version=%s', 'default': 2},
+    {'src': 'NOTIFY_PARAMETER_ROOM_ID', 'dst': '--room=%s'},
+    {'src': 'NOTIFY_PARAMETER_TOKEN', 'dst': '--token=%s'},
+    {'src': 'NOTIFY_PARAMETER_API_HOST', 'dst': '--host=%s'},
+    {'src': 'NOTIFY_PARAMETER_USER', 'dst': '--user=%s'},
+    {'src': 'NOTIFY_PARAMETER_MSG_FORMAT', 'dst': '--format=%s'},
+    {'src': 'NOTIFY_PARAMETER_PROXY', 'dst': '--proxy=%s'},
+    {'src': 'NOTIFY_WHAT', 'dst': '--type=%s', 'default': 'service', 'callback': lambda x: x.lower()},
+]
+
+INPUTS = [
+    'NOTIFY_HOSTNAME',
+    'NOTIFY_HOSTALIAS',
+    'NOTIFY_LONGDATETIME',
+    'NOTIFY_NOTIFICATIONTYPE',
+    'NOTIFY_HOSTADDRESS',
+    'NOTIFY_HOSTSTATE',
+    'NOTIFY_HOSTOUTPUT'
+]
+
+
+def main():
+    cmd = []
+    for binary in ['hipsaint']:
+        if os.system('which %s >/dev/null' % binary) == 0:
+            cmd.append(binary)
+            break
+    if not len(cmd):
+        sys.exit(0)
+
+    cmd.append('-n')
+    for param in PARAMS:
+        value = os.environ.get(param['src'])
+        if not value and 'default' in param:
+            value = param['default']
+        if 'callback' in param:
+            value = param['callback'](value)
+        tmp = param['dst'] % value
+        if value:
+            cmd.append(tmp)
+
+    inputs_list = []
+    for input_ in INPUTS:
+        inputs_list.append(os.environ[input_])
+    inputs = '|'.join(inputs_list)
+
+    cmd.append('--inputs=%s' % inputs)
+    sys.stderr.write('%r' % cmd)
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+    sys.exit(p.wait())
+
+main()
