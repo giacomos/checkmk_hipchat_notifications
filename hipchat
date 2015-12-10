@@ -4,9 +4,11 @@
 import os
 import subprocess
 import sys
+import pprint
 
+# pprint.pprint(os.environ.__dict__)
 
-PARAMS = [
+CMD_PARAMS = [
     {'src': 'NOTIFY_PARAMETER_API_VERSION', 'dst': '--api_version=%s', 'default': 2},
     {'src': 'NOTIFY_PARAMETER_ROOM_ID', 'dst': '--room=%s'},
     {'src': 'NOTIFY_PARAMETER_TOKEN', 'dst': '--token=%s'},
@@ -15,16 +17,6 @@ PARAMS = [
     {'src': 'NOTIFY_PARAMETER_MSG_FORMAT', 'dst': '--format=%s'},
     {'src': 'NOTIFY_PARAMETER_PROXY', 'dst': '--proxy=%s'},
     {'src': 'NOTIFY_WHAT', 'dst': '--type=%s', 'default': 'service', 'callback': lambda x: x.lower()},
-]
-
-INPUTS = [
-    'NOTIFY_HOSTNAME',
-    'NOTIFY_HOSTALIAS',
-    'NOTIFY_LONGDATETIME',
-    'NOTIFY_NOTIFICATIONTYPE',
-    'NOTIFY_HOSTADDRESS',
-    'NOTIFY_HOSTSTATE',
-    'NOTIFY_HOSTOUTPUT'
 ]
 
 
@@ -38,7 +30,7 @@ def main():
         sys.exit(0)
 
     cmd.append('-n')
-    for param in PARAMS:
+    for param in CMD_PARAMS:
         value = os.environ.get(param['src'])
         if not value and 'default' in param:
             value = param['default']
@@ -49,12 +41,34 @@ def main():
             cmd.append(tmp)
 
     inputs_list = []
-    for input_ in INPUTS:
-        inputs_list.append(os.environ[input_])
+
+    if os.environ['NOTIFY_WHAT'] == 'SERVICE':
+        # $SERVICEDESC$|$HOSTALIAS$|$LONGDATETIME$|$NOTIFICATIONTYPE$|$HOSTADDRESS$|$SERVICESTATE$|$SERVICEOUTPUT$
+        inputs_list.append(os.environ['NOTIFY_SERVICEDESC'])
+        inputs_list.append(os.environ['NOTIFY_HOSTALIAS'])
+        inputs_list.append(os.environ['NOTIFY_LONGDATETIME'])
+        inputs_list.append(os.environ['NOTIFY_WHAT'])
+        inputs_list.append(os.environ['NOTIFY_HOSTADDRESS'])
+        state = ' -> '.join([os.environ['NOTIFY_PREVIOUSSERVICEHARDSHORTSTATE'],
+                             os.environ['NOTIFY_SERVICESHORTSTATE']])
+        inputs_list.append(state)
+        inputs_list.append(os.environ['NOTIFY_SERVICEOUTPUT'])
+    else:
+        # $HOSTNAME$|$LONGDATETIME$|$NOTIFICATIONTYPE$|$HOSTADDRESS$|$HOSTSTATE$|$HOSTOUTPUT$
+        inputs_list.append(os.environ['NOTIFY_HOSTNAME'])
+        inputs_list.append(os.environ['NOTIFY_HOSTALIAS'])
+        inputs_list.append(os.environ['NOTIFY_LONGDATETIME'])
+        inputs_list.append(os.environ['NOTIFY_WHAT'])
+        inputs_list.append(os.environ['NOTIFY_HOSTADDRESS'])
+        state = ' -> '.join([os.environ['NOTIFY_PREVIOUSHOSTHARDSHORTSTATE'],
+                             os.environ['NOTIFY_HOSTSHORTSTATE']])
+        inputs_list.append(state)
+        inputs_list.append(os.environ['NOTIFY_HOSTOUTPUT'])
+
     inputs = '|'.join(inputs_list)
 
     cmd.append('--inputs=%s' % inputs)
-    sys.stderr.write('%r' % cmd)
+    pprint.pprint(cmd)
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     sys.exit(p.wait())
 
